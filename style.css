@@ -337,7 +337,7 @@ section {
 }
 
 .article-container {
-  display: flex;
+  display: grid;
   text-align: initial;
   flex-wrap: wrap;
   flex-direction: row;
