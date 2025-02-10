@@ -1,3 +1,64 @@
+.experience-item {
+  margin-bottom: 7px;
+  padding: 15px 13px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.experience-item h3 {
+  margin: 5px 0;
+}
+
+.experience-item p {
+  margin: 5px 0;
+}
+
+.icon.small {
+  width: 80px;
+  height: 18px;
+  vertical-align: middle;
+}
+
+
+/* Experience Item Scrollable */
+.experience-item-container {
+  max-height: 350px; /* Set max height for each item */
+  overflow-y: auto; /* Enable vertical scrolling */
+  padding: 5px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+/* Smooth hover effect */
+.experience-item-container:hover {
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Custom sleek scrollbar */
+.experience-item-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.experience-item-container::-webkit-scrollbar-track {
+  background: #e0e0e0;
+  border-radius: 12px;
+}
+
+.experience-item-container::-webkit-scrollbar-thumb {
+  background: gray;
+  border-radius: 12px;
+}
+
+.experience-item-container::-webkit-scrollbar-thumb:hover {
+  background: black;
+}
+
+
+
+
+
 @media screen and (max-width: 1400px) {
   #profile {
     height: 83vh;
@@ -77,6 +138,7 @@
   }
   .experience-sub-title {
     font-size: 1.25rem;
+    margin-bottom: 1rem;
   }
   .logo {
     font-size: 1.5rem;
