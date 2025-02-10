@@ -22,19 +22,17 @@
 
 /* Experience Item Scrollable */
 .experience-item-container {
-  max-height: 350px; /* Set max height for each item */
+  max-height: 360px; /* Set max height for each item */
   overflow-y: auto; /* Enable vertical scrolling */
   padding: 5px;
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  /* border-radius: 12px; */
   transition: all 0.3s ease-in-out;
 }
 
-/* Smooth hover effect */
+/* Smooth hover effect
 .experience-item-container:hover {
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-}
+} */
 
 /* Custom sleek scrollbar */
 .experience-item-container::-webkit-scrollbar {
