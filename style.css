@@ -320,7 +320,36 @@ section {
 /* EXPERIENCE SECTION */
 
 #experience {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-items: center;
+  margin: 0 auto;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+#experience .about-containers {
+  display: block;
+  justify-content: center;
+}
+
+#experience .details-container {
+  margin: 0 auto;
+  margin-top: 1rem;
+}
+
+@media screen and (max-width: 600px) {
+  #experience .experience-item-container {
+    max-height: 670px;
+    overflow: auto;
+  }
+  
+}
+
+#experience .experience-item-container {
+  max-height: 300px;
+  overflow: auto;
 }
 
 .experience-sub-title {
