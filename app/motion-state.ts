@@ -10,6 +10,10 @@ export type ScenePose = {
   ry: number;
   rz: number;
   dark: number;
+  orbit: number;
+  nodes: number;
+  depth: number;
+  pulse: number;
 };
 export type SystemState = {
   chapter: number;
@@ -25,6 +29,22 @@ export const smooth = (value: number) => {
   return t * t * (3 - 2 * t);
 };
 export const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+/** Compact artwork stays in a visible reserved area instead of crossing reading content. */
+export function visibleArtworkZones(
+  zones: readonly { y: number; height: number; width: number }[],
+  scroll: number,
+  viewportHeight: number,
+) {
+  return zones.flatMap((zone, index) => {
+    const center = zone.y - scroll;
+    return zone.width > 0 &&
+      zone.height > 0 &&
+      center + zone.height / 2 > 76 &&
+      center - zone.height / 2 < viewportHeight
+      ? [index]
+      : [];
+  });
+}
 export const POSES: readonly ScenePose[] = [
   {
     spread: 0,
@@ -37,6 +57,10 @@ export const POSES: readonly ScenePose[] = [
     ry: -0.48,
     rz: -0.13,
     dark: 0,
+    orbit: 0.2,
+    nodes: 0.15,
+    depth: 0.25,
+    pulse: 0.2,
   },
   {
     spread: 1,
@@ -49,6 +73,10 @@ export const POSES: readonly ScenePose[] = [
     ry: 0,
     rz: 0.04,
     dark: 0,
+    orbit: 1,
+    nodes: 1,
+    depth: 0.75,
+    pulse: 0.9,
   },
   {
     spread: 1,
@@ -61,6 +89,10 @@ export const POSES: readonly ScenePose[] = [
     ry: -0.12,
     rz: -0.03,
     dark: 0,
+    orbit: 0.58,
+    nodes: 0.35,
+    depth: 1,
+    pulse: 0.5,
   },
   {
     spread: 1,
@@ -72,7 +104,11 @@ export const POSES: readonly ScenePose[] = [
     rx: 0,
     ry: 0.1,
     rz: 0,
-    dark: 1,
+    dark: 0,
+    orbit: 0.92,
+    nodes: 0.82,
+    depth: 0.62,
+    pulse: 0.72,
   },
   {
     spread: 1,
@@ -85,6 +121,10 @@ export const POSES: readonly ScenePose[] = [
     ry: 0,
     rz: 0,
     dark: 0,
+    orbit: 0.78,
+    nodes: 0.48,
+    depth: 1.25,
+    pulse: 0.4,
   },
   {
     spread: 1,
@@ -96,7 +136,11 @@ export const POSES: readonly ScenePose[] = [
     rx: 0.18,
     ry: -0.28,
     rz: -0.05,
-    dark: 1,
+    dark: 0,
+    orbit: 0.3,
+    nodes: 0.62,
+    depth: 0.45,
+    pulse: 0.38,
   },
   {
     spread: 1,
@@ -108,7 +152,11 @@ export const POSES: readonly ScenePose[] = [
     rx: 0.08,
     ry: 0.18,
     rz: 0,
-    dark: 1,
+    dark: 0,
+    orbit: 0.72,
+    nodes: 1,
+    depth: 0.88,
+    pulse: 0.85,
   },
   {
     spread: 0.6,
@@ -120,7 +168,11 @@ export const POSES: readonly ScenePose[] = [
     rx: 0.12,
     ry: -0.15,
     rz: 0.06,
-    dark: 1,
+    dark: 0,
+    orbit: 1,
+    nodes: 0.5,
+    depth: 1.18,
+    pulse: 0.48,
   },
   {
     spread: 1,
@@ -132,7 +184,11 @@ export const POSES: readonly ScenePose[] = [
     rx: 0,
     ry: -0.15,
     rz: 0,
-    dark: 1,
+    dark: 0,
+    orbit: 0.88,
+    nodes: 0.2,
+    depth: 1.5,
+    pulse: 1,
   },
   {
     spread: 0,
@@ -145,6 +201,10 @@ export const POSES: readonly ScenePose[] = [
     ry: -0.2,
     rz: -0.03,
     dark: 0,
+    orbit: 0.28,
+    nodes: 0.08,
+    depth: 0.58,
+    pulse: 0.2,
   },
 ];
 export function samplePose(chapter: number): ScenePose {
@@ -152,7 +212,9 @@ export function samplePose(chapter: number): ScenePose {
   const index = Math.floor(value);
   const from = POSES[index],
     to = POSES[Math.min(index + 1, POSES.length - 1)];
-  const t = smooth(value - index);
+  // Chapter progress is already driven by scroll. A second easing pass here
+  // makes the 3D pose feel detached from the user's input.
+  const t = value - index;
   return Object.fromEntries(
     Object.keys(from).map((key) => [
       key,

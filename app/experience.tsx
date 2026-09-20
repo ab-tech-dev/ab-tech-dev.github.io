@@ -9,18 +9,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
+import ServicePlayground from './service-playground';
+import { ArrowRight, Code2, GitBranch, Sparkles } from 'lucide-react';
 
 const CONTACT =
   'mailto:mrjoshuaability@gmail.com?subject=Let%E2%80%99s%20build%20something';
 const NAV = [
   ['The studio', '#about'],
   ['Our expertise', '#expertise'],
+  ['Selected work', '#work'],
   ['The approach', '#approach'],
   ['Let’s talk', '#contact'],
 ];
@@ -36,7 +33,7 @@ const SERVICES = [
     title: 'Less busywork. More momentum.',
     short: 'Automation',
     description:
-      'Connect the tools you already use. Move information, trigger the next step, and keep work flowing—with your team in control.',
+      'Connect the tools you already use. Move information, trigger the next step, and keep work flowing, with your team in control.',
     tags: ['Business workflows', 'API integrations', 'Connected operations'],
   },
   {
@@ -45,6 +42,58 @@ const SERVICES = [
     description:
       'Useful assistants and knowledge workflows that help your people find answers and act faster. Designed with clear boundaries and human oversight.',
     tags: ['AI assistants', 'Knowledge systems', 'Human approval'],
+  },
+];
+const PROJECTS = [
+  {
+    index: '01',
+    slug: 'salon',
+    type: 'Live client experience',
+    title: 'Infinity Hair & Beauty',
+    description:
+      'A conversion-focused salon experience that turns a large service catalogue into one clear visual journey, with responsive booking paths, a style gallery, and polished editorial motion.',
+    stack: ['Creative frontend', 'Responsive UX', 'Content system'],
+    image: '/projects/infinity-salon-current.webp',
+    imageAlt: 'Infinity Hair and Beauty website homepage',
+    source: 'https://github.com/ab-tech-dev/infinitysalon',
+    live: 'https://infinitysalon-flame.vercel.app',
+  },
+  {
+    index: '02',
+    slug: 'commerce',
+    type: 'Commerce infrastructure',
+    title: 'Dandelionz',
+    description:
+      'A multi-vendor commerce platform spanning product catalogues, role-based operations, cart and order lifecycles, Paystack payments, wallets, referrals, delivery tracking, and administration.',
+    stack: ['Django REST', 'PostgreSQL', 'Redis + Celery'],
+    image: '/projects/dandelionz-live.webp',
+    imageAlt: 'Dandelionz marketplace best sellers campaign',
+    live: 'https://app.dandelionz.com.ng',
+    source: 'https://github.com/ab-tech-dev/dandelionz',
+  },
+  {
+    index: '03',
+    slug: 'local-ai',
+    type: 'Private applied AI',
+    title: 'Local Review Intelligence',
+    description:
+      'A retrieval assistant that answers questions from restaurant feedback while keeping inference and embeddings local. Built for fast repeated queries with caching and a persistent vector store.',
+    stack: ['Ollama', 'LangChain', 'Chroma'],
+    image: '/projects/local-review-ai.png',
+    imageAlt: 'Local Review Intelligence project repository preview',
+    source: 'https://github.com/ab-tech-dev/Local_AI_Agent',
+  },
+  {
+    index: '04',
+    slug: 'medical-ai',
+    type: 'Knowledge retrieval system',
+    title: 'Medical Knowledge Assistant',
+    description:
+      'An end-to-end generative AI reference assistant with document embeddings, semantic retrieval, a Flask interface, container delivery, and an AWS deployment workflow.',
+    stack: ['Python + Flask', 'Pinecone', 'Docker + AWS'],
+    image: '/projects/medical-assistant.png',
+    imageAlt: 'Medical Knowledge Assistant project repository preview',
+    source: 'https://github.com/ab-tech-dev/medical_chatbot',
   },
 ];
 
@@ -68,6 +117,25 @@ function Roll({ children }: { children: string }) {
       <span>{children}</span>
       <span aria-hidden="true">{children}</span>
     </span>
+  );
+}
+
+function SectionLabel({
+  index,
+  title,
+  note,
+}: {
+  index: string;
+  title: string;
+  note: string;
+}) {
+  return (
+    <div className="section-label" aria-label={`${index}. ${title}. ${note}`}>
+      <span className="section-label-index">{index}</span>
+      <span className="section-label-title">{title}</span>
+      <i aria-hidden="true" />
+      <span className="section-label-note">{note}</span>
+    </div>
   );
 }
 
@@ -102,162 +170,6 @@ function SceneZone({ name }: { name: string }) {
   );
 }
 
-function ServicePreview({ service }: { service: number }) {
-  return (
-    <div className="service-demo">
-      <div className="demo-chrome">
-        <span className="demo-dots">
-          <i />
-          <i />
-          <i />
-        </span>
-        <span>
-          ab / {['workspace', 'automations', 'intelligence'][service]}
-        </span>
-        <span className="demo-status">
-          <i /> Connected
-        </span>
-      </div>
-      <div className="preview-scenes">
-        <div
-          className="preview-panel"
-          data-active={service === 0}
-          aria-hidden={service !== 0}
-          inert={service !== 0}
-        >
-          <div className="workspace-demo">
-            <div className="demo-sidebar">
-              <span className="mini-brand">ab.</span>
-              <i className="selected" />
-              <i />
-              <i />
-              <i />
-              <div className="sidebar-avatar">A</div>
-            </div>
-            <div className="workspace-main">
-              <div className="demo-welcome">
-                <div>
-                  <small>YOUR WORKSPACE</small>
-                  <h4>A clearer picture.</h4>
-                </div>
-                <span className="avatar-stack">
-                  <i>J</i>
-                  <i>A</i>
-                  <i>+</i>
-                </span>
-              </div>
-              <div className="demo-stat-row">
-                <div>
-                  <small>Projects</small>
-                  <strong>06</strong>
-                  <span>Everything in one place</span>
-                </div>
-                <div>
-                  <small>Next milestone</small>
-                  <strong>Launch</strong>
-                  <span>Ready when you are</span>
-                </div>
-              </div>
-              <div className="demo-chart">
-                <span>Project momentum</span>
-                <span className="chart-label">A clearer way forward</span>
-                <svg viewBox="0 0 500 120" fill="none" aria-hidden="true">
-                  <path
-                    d="M0 100H500M0 60H500M0 20H500"
-                    stroke="#334038"
-                    strokeDasharray="3 6"
-                  />
-                  <path
-                    d="M0 106C50 105 55 77 96 80S151 106 197 70 232 76 282 44 330 67 365 31 441 35 500 4"
-                    stroke="#c4f975"
-                    strokeWidth="2.5"
-                  />
-                </svg>
-              </div>
-              <div className="demo-task">
-                <span className="check">✓</span>
-                <span>From first idea to final delivery</span>
-                <small>In sync</small>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          className="preview-panel"
-          data-active={service === 1}
-          aria-hidden={service !== 1}
-          inert={service !== 1}
-        >
-          <div className="workflow-demo">
-            <div className="workflow-caption">
-              <small>YOUR WORKFLOW, CONNECTED</small>
-              <h4>
-                One thing leads
-                <br />
-                to the next.
-              </h4>
-            </div>
-            <ol>
-              {[
-                ['New enquiry', 'Form received'],
-                ['Check & route', 'Right team. Right context.'],
-                ['Your approval', 'A human when it matters'],
-                ['CRM updated', 'Everyone in the loop'],
-              ].map(([label, text], i) => (
-                <li key={label}>
-                  {i > 0 && (
-                    <span className="flow-icon">{['', '⌘', '✓', '↔'][i]}</span>
-                  )}
-                  <div>
-                    <strong>{label}</strong>
-                    <small>{text}</small>
-                  </div>
-                  <span className="flow-dot" />
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
-        <div
-          className="preview-panel"
-          data-active={service === 2}
-          aria-hidden={service !== 2}
-          inert={service !== 2}
-        >
-          <div className="intelligence-demo">
-            <span className="ai-spark" aria-hidden="true">
-              ✳
-            </span>
-            <h4>Answers, with context.</h4>
-            <div className="message user-message">
-              What needs my attention today?
-            </div>
-            <div className="message assistant-message">
-              <span className="answer-label">
-                <i /> YOUR CONNECTED KNOWLEDGE
-              </span>
-              <p>
-                Your launch plan is ready for review. The latest feedback and
-                next steps are together in your project workspace.
-              </p>
-              <span className="source-chip">Project notes</span>
-              <span className="source-chip">Launch plan</span>
-            </div>
-            <p className="ai-note">Useful answers. Your team makes the call.</p>
-          </div>
-        </div>
-      </div>
-      <div className="demo-caption" aria-live="polite" aria-atomic="true">
-        <span>
-          Illustrative{' '}
-          {['client portal', 'automation workflow', 'AI assistant'][service]}
-        </span>
-        <span>Built around your business</span>
-      </div>
-    </div>
-  );
-}
-
 export default function Experience() {
   const root = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -267,6 +179,24 @@ export default function Experience() {
   return (
     <div ref={root} className="experience" id="top" data-menu-open={menuOpen}>
       <div className="living-system" aria-hidden="true" />
+      <div className="cosmic-atmosphere" aria-hidden="true">
+        <b />
+      </div>
+      <div className="motion-veil" aria-hidden="true" />
+      <div className="motion-grain" aria-hidden="true" />
+      <div className="signal-overlay" aria-hidden="true">
+        <i />
+        <div className="signal-telemetry">
+          <span>SYS://AB-TECH</span>
+          <span>CHANNEL 03 · LIVE</span>
+          <span>VECTOR 41.03 / 02.91</span>
+        </div>
+      </div>
+      <div className="global-chapter" aria-hidden="true">
+        <span>Continuous system</span>
+        <i />
+        <b data-chapter-readout>Imagine</b>
+      </div>
       <a className="skip-link" href="#about">
         Skip the animation
       </a>
@@ -274,11 +204,10 @@ export default function Experience() {
         <a className="wordmark" href="#top" aria-label="ab-tech-dev home">
           <span>&lt;</span>ab-tech-dev<span>/&gt;</span>
         </a>
-        <span className="header-descriptor">
-          Software. Automation.
-          <br />A little ahead.
-        </span>
         <nav className="desktop-nav" aria-label="Main navigation">
+          <a href="#work">
+            <Roll>Work</Roll>
+          </a>
           <a href="#expertise">
             <Roll>Expertise</Roll>
           </a>
@@ -313,7 +242,6 @@ export default function Experience() {
                 block: 'start',
               });
             }
-            pendingNavigation.current = null;
           }}
         >
           <DialogTrigger
@@ -329,7 +257,13 @@ export default function Experience() {
           <DialogContent
             className="menu-popup"
             showCloseButton={false}
-            finalFocus={() => (pendingNavigation.current ? false : true)}
+            finalFocus={() =>
+              pendingNavigation.current
+                ? (document.querySelector<HTMLElement>(
+                    pendingNavigation.current,
+                  ) ?? false)
+                : true
+            }
           >
             <DialogTitle className="sr-only">Explore ab-tech-dev</DialogTitle>
             <DialogDescription className="sr-only">
@@ -412,16 +346,18 @@ export default function Experience() {
                   </span>
                 </h1>
                 <p className="hero-description">
-                  Software that moves you forward.
-                  <br />
-                  Automation that gives you time back.
-                  <br />
-                  Built around your next big thing.
+                  We design and build the software, automations, and applied AI
+                  that turn the way you work into an advantage.
                 </p>
-                <a className="hero-cta" href={CONTACT}>
-                  <Roll>Let’s build something</Roll>
-                  <Arrow />
-                </a>
+                <div className="hero-actions">
+                  <a className="hero-primary" href="#work">
+                    <Roll>See selected work</Roll>
+                    <Arrow />
+                  </a>
+                  <a className="hero-secondary" href={CONTACT}>
+                    <Roll>Start a project</Roll>
+                  </a>
+                </div>
                 <SceneZone name="hero-0" />
               </div>
               <div className="hero-act">
@@ -434,13 +370,6 @@ export default function Experience() {
                     off your plate.
                   </span>
                 </h2>
-                <p className="hero-description">
-                  Your tools talk to each other.
-                  <br />
-                  The next step happens automatically.
-                  <br />
-                  You get back to what matters.
-                </p>
                 <div className="act-detail">
                   <span>INPUT</span>
                   <i />
@@ -458,28 +387,10 @@ export default function Experience() {
                   <span className="heading-line">Your next</span>
                   <span className="heading-line accent-word">advantage.</span>
                 </h2>
-                <p className="hero-description">
-                  One connected system.
-                  <br />A more capable business.
-                  <br />
-                  And room to go further.
-                </p>
-                <a className="hero-cta" href="#expertise">
-                  <Roll>Explore the possibilities</Roll>
-                  <Arrow />
-                </a>
                 <SceneZone name="hero-2" />
               </div>
             </div>
             <div className="hero-bottom">
-              <a href="#about" className="scroll-link">
-                <span className="scroll-icon">↓</span>
-                <span>
-                  Scroll to connect
-                  <br />
-                  <small>From possibility to progress</small>
-                </span>
-              </a>
               <div className="chapter-track" aria-hidden="true">
                 <span className="chapter chapter-0">
                   <small>01</small> Imagine
@@ -508,120 +419,118 @@ export default function Experience() {
             data-parallax
             aria-hidden="true"
           />
-          <SceneZone name="studio" />
-          <div className="section-kicker">
-            <span className="eyebrow">
-              <span className="tiny-cross">+</span> THE WAY WE SEE IT
-            </span>
-            <span className="micro">01 / THE STUDIO</span>
+          <div className="studio-opening">
+            <SectionLabel
+              index="01"
+              title="The studio"
+              note="Independent studio. Connected thinking."
+            />
           </div>
           <h2 className="intro-heading">
-            {[
-              'Technology should open possibilities.',
-              'Not more tabs',
-              'on your to-do list.',
-            ].map((phrase) => (
-              <span data-phrase key={phrase}>
-                {phrase}{' '}
-              </span>
-            ))}
+            {['Technology should', 'open possibilities.', 'Not more tabs.'].map(
+              (phrase) => (
+                <span data-phrase key={phrase}>
+                  {phrase}{' '}
+                </span>
+              ),
+            )}
           </h2>
           <div className="intro-lower">
-            <span className="intro-symbol" aria-hidden="true">
-              [ + ]
-            </span>
-            <div>
-              <p>
-                We turn ambitious ideas into software people love using—and
-                everyday complexity into systems that simply work.
-              </p>
-              <p>
-                A direct partnership. Thoughtful execution.
-                <br />
-                Built to make a difference to your day.
-              </p>
+            <div className="studio-emblem">
+              <SceneZone name="studio" />
+              <span>One considered system.</span>
             </div>
-            <a className="text-link" href="#expertise">
-              <Roll>What we can build</Roll>
-              <Arrow />
-            </a>
+            <div className="studio-copy">
+              <p>
+                Software people love using. Automation that gives your team time
+                back. Built around the way your business actually works.
+              </p>
+              <p>
+                A direct partnership, from the first conversation to the next
+                release.
+              </p>
+              <a className="text-link" href="#expertise">
+                <Roll>What we can build</Roll>
+                <Arrow />
+              </a>
+            </div>
+          </div>
+          <div className="studio-connections" aria-hidden="true">
+            <span>Your people</span>
+            <i />
+            <span>Your tools</span>
+            <i />
+            <span>Your next move</span>
           </div>
         </section>
         <section id="expertise" className="expertise section-pad" tabIndex={-1}>
-          <div className="section-kicker">
-            <span className="eyebrow">
-              <span className="tiny-cross">+</span> OUR EXPERTISE
-            </span>
-            <span className="micro">02 / THE POSSIBILITIES</span>
-          </div>
+          <SectionLabel
+            index="02"
+            title="Capabilities"
+            note="Software, automation, and applied AI."
+          />
           <div className="expertise-heading">
             <h2>
-              Big ideas.
+              Built around
               <br />
-              <span className="muted-word">Meet execution.</span>
+              your business.
             </h2>
-            <p>
-              Three ways to move forward.
-              <br />
-              Even better, together.
-            </p>
+            <p>Three disciplines. One connected way of thinking.</p>
           </div>
           <div className="services-layout">
+            <div className="service-selector">
+              <fieldset className="service-options">
+                <legend className="sr-only">Explore our expertise</legend>
+                {SERVICES.map((item, index) => {
+                  const Icon = [Code2, GitBranch, Sparkles][index];
+                  return (
+                    <button
+                      type="button"
+                      key={item.short}
+                      className="service-choice"
+                      aria-pressed={service === index}
+                      onClick={() => setService(index)}
+                    >
+                      <Icon size={22} strokeWidth={1.5} />
+                      <span>{item.short}</span>
+                      <ArrowRight size={22} />
+                    </button>
+                  );
+                })}
+              </fieldset>
+              <div className="service-detail" key={service}>
+                <h3>{SERVICES[service].title}</h3>
+                <p>{SERVICES[service].description}</p>
+                <ul className="service-tags">
+                  {SERVICES[service].tags.map((tag) => (
+                    <li key={tag}>{tag}</li>
+                  ))}
+                </ul>
+                <a
+                  className="text-link"
+                  href={
+                    CONTACT +
+                    '&body=' +
+                    encodeURIComponent(
+                      'Hi ab-tech-dev,\n\nI would like to discuss ' +
+                        SERVICES[service].short.toLowerCase() +
+                        ' for my business.\n\nHere is what I have in mind:\n',
+                    )
+                  }
+                >
+                  <Roll>Let’s explore it</Roll>
+                  <Arrow />
+                </a>
+              </div>
+            </div>
             <div className="service-art" data-scene-sticky>
               <SceneZone name="expertise" />
               <div className="service-arrival">
                 <div className="service-tilt">
-                  <ServicePreview service={service} />
+                  <ServicePlayground service={service} />
                 </div>
               </div>
             </div>
-            <Accordion
-              className="service-accordion"
-              value={[String(service)]}
-              onValueChange={(values) => {
-                if (values.length) setService(Number(values[0]));
-              }}
-            >
-              {SERVICES.map((item, index) => (
-                <AccordionItem
-                  value={String(index)}
-                  key={item.short}
-                  className="service-item"
-                >
-                  <AccordionTrigger className="service-trigger">
-                    <span className="service-number">0{index + 1}</span>
-                    <span>{item.short}</span>
-                    <span className="service-plus" aria-hidden="true">
-                      +
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent className="service-description">
-                    <h3>{item.title}</h3>
-                    <p>{item.description}</p>
-                    <ul className="service-tags">
-                      {item.tags.map((tag) => (
-                        <li key={tag}>{tag}</li>
-                      ))}
-                    </ul>
-                    <a
-                      href={
-                        CONTACT +
-                        '&body=' +
-                        encodeURIComponent(
-                          'Hi ab-tech-dev,\n\nI’d like to discuss ' +
-                            item.short.toLowerCase() +
-                            ' for my business.\n\nHere’s what I have in mind:\n',
-                        )
-                      }
-                      className="text-link"
-                    >
-                      <Roll>Let’s explore it</Roll>
-                      <Arrow />
-                    </a>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
           </div>
           <div className="service-connector" aria-hidden="true">
             <i />
@@ -630,10 +539,82 @@ export default function Experience() {
             <div className="marquee-track">
               <span>Less friction.</span>
               <span>More possibility.</span>
-              <span>Less friction.</span>
-              <span>More possibility.</span>
             </div>
           </div>
+        </section>
+        <section id="work" className="work section-pad" tabIndex={-1}>
+          <SectionLabel
+            index="03"
+            title="Selected work"
+            note="Shipped systems · 2025—2026"
+          />
+          <div className="work-heading">
+            <div>
+              <h2>
+                Built things.
+                <br />
+                Real outcomes.
+              </h2>
+            </div>
+            <p>
+              A selection of shipped experiences and working systems across software,
+              commerce, and applied AI.
+            </p>
+          </div>
+          <div className="project-list">
+            {PROJECTS.map((project) => (
+              <article className={`project-case project-${project.slug}`} key={project.title}>
+                <div className="project-copy">
+                  <div className="project-meta">
+                    <span>{project.index}</span>
+                    <span>{project.type}</span>
+                  </div>
+                  <h3>{project.title}</h3>
+                  <p>{project.description}</p>
+                  <ul>
+                    {project.stack.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                  <div className="project-actions">
+                    {'live' in project && project.live ? (
+                      <a href={project.live} target="_blank" rel="noreferrer">
+                        <Roll>View live project</Roll>
+                        <Arrow />
+                      </a>
+                    ) : null}
+                    <a href={project.source} target="_blank" rel="noreferrer">
+                      <Code2 size={17} strokeWidth={1.5} aria-hidden="true" />
+                      <Roll>View source</Roll>
+                    </a>
+                  </div>
+                </div>
+                <div className="project-visual">
+                  <figure className="project-image-frame">
+                    <img
+                      src={project.image}
+                      alt={project.imageAlt}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <figcaption>
+                      <span>Project / {project.index}</span>
+                      <span>{project.type}</span>
+                    </figcaption>
+                  </figure>
+                </div>
+              </article>
+            ))}
+          </div>
+          <a
+            className="github-profile-link"
+            href="https://github.com/ab-tech-dev"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span>More experiments and builds on GitHub</span>
+            <Code2 size={20} strokeWidth={1.5} aria-hidden="true" />
+          </a>
         </section>
         <section id="approach" className="approach section-pad" tabIndex={-1}>
           <div
@@ -641,25 +622,20 @@ export default function Experience() {
             data-parallax
             aria-hidden="true"
           />
-          <div className="section-kicker">
-            <span className="eyebrow">
-              <span className="tiny-cross">+</span> HOW WE GET THERE
-            </span>
-            <span className="micro">03 / THE APPROACH</span>
-          </div>
+          <SectionLabel
+            index="04"
+            title="The approach"
+            note="Clear thinking. Visible progress."
+          />
           <div className="approach-layout">
             <div className="approach-lead" data-scene-sticky>
               <h2>
-                Complexity?
+                Good work.
                 <br />
-                <span className="serif-word">Consider it handled.</span>
+                Clear process.
               </h2>
               <p>
-                Clear conversations.
-                <br />
-                Visible progress.
-                <br />
-                Care in every detail.
+                Close collaboration, visible progress, and care in every detail.
               </p>
               <a className="text-link" href={CONTACT}>
                 <Roll>Meet your next build</Roll>
@@ -691,33 +667,38 @@ export default function Experience() {
                     <h3>{title}</h3>
                     <h4>{subtitle}</h4>
                     <p>{text}</p>
+                    <span className="step-deliverable">
+                      {
+                        [
+                          'A shared brief and a clear direction',
+                          'A working product, shaped together',
+                          'A confident launch and clear handover',
+                        ][index]
+                      }
+                    </span>
                   </div>
-                  <Arrow />
                 </article>
               ))}
             </div>
           </div>
         </section>
         <section id="contact" className="contact-section" tabIndex={-1}>
-          <SceneZone name="contact" />
           <div className="contact-inner section-pad">
-            <div className="section-kicker">
-              <span className="eyebrow">
-                <span className="tiny-cross">+</span> THE NEXT MOVE IS YOURS
-              </span>
-              <span className="micro">04 / LET’S TALK</span>
-            </div>
+            <SectionLabel
+              index="05"
+              title="Start something"
+              note="An idea. A challenge. A better way."
+            />
             <h2>
-              <span className="contact-line">Something</span>
-              <span className="contact-line contact-second">
-                great starts <em>here.</em>
-              </span>
+              <span className="contact-line">Let’s make</span>
+              <span className="contact-line contact-second">it work.</span>
             </h2>
+            <SceneZone name="contact" />
             <div className="contact-bottom">
               <p>
-                An idea. A challenge. A better way.
+                Tell us what you have in mind.
                 <br />
-                Let’s see what we can make possible.
+                We’ll work out the next move together.
               </p>
               <a className="contact-button" href={CONTACT}>
                 <Roll>Start a project</Roll>
@@ -733,7 +714,20 @@ export default function Experience() {
         </section>
       </main>
       <footer className="site-footer" id="footer">
-        <SceneZone name="footer" />
+        <div className="footer-opening">
+          <p>
+            Thoughtful software.
+            <br />
+            Effortless automation.
+          </p>
+          <SceneZone name="footer" />
+          <nav aria-label="Footer navigation">
+            <a href="#about">The studio</a>
+            <a href="#expertise">Our expertise</a>
+            <a href="#work">Selected work</a>
+            <a href="#approach">The approach</a>
+          </nav>
+        </div>
         <a href="#top" className="footer-wordmark" aria-label="Back to top">
           {'<ab-tech-dev/>'}
           <Arrow />

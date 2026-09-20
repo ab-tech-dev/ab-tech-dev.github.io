@@ -1,7 +1,7 @@
 # ab-tech-dev — motion direction and implementation storyboard
 
 Status: proposed creative and technical plan. No animation changes are implemented by this document.
-Scope: the existing single-page website, its six sections, navigation overlay, and service selection states. Do not add routes or content solely to provide animation surfaces. Preserve the typography work and the removal of the ↗ text glyph; retain the designed SVG arrows.
+Scope: the existing single-page website, its six sections, navigation overlay, and service selection states. Do not add routes or content solely to provide animation surfaces. Preserve the typography work and the removal of the diagonal-arrow text glyph; retain the designed SVG arrows.
 
 ## Direction: one idea becomes a working system
 
@@ -43,13 +43,13 @@ Entrance: show the actual heading and contact link immediately. Bring the bracke
 
 Desktop scroll: keep the three existing acts, initially within a 280–320 svh track. Progress below describes the hero's local scroll range:
 
-| Progress | Composition and animation | Text behavior |
-| --- | --- | --- |
-| 0–18% | Brackets cradle a compressed group of panels. Restrained drift and pointer response establish depth. | Ambition, in motion. Hold long enough to read. |
-| 18–38% | Brackets separate; the slash recedes; panels fan into their working positions. | Transition into the second act by line. |
-| 38–62% | Connections draw in sequence and a small number of packets travel between panels. | Busywork, off your plate. Copy holds still. |
-| 62–82% | Panels align and consolidate into one completed surface. | Your next advantage. Contact/expertise action stays usable. |
-| 82–100% | The camera relaxes toward a frontal view; the assembled object becomes smaller and moves toward the studio section's margin. | Release the hero into normal document flow. |
+| Progress | Composition and animation                                                                                                    | Text behavior                                               |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| 0–18%    | Brackets cradle a compressed group of panels. Restrained drift and pointer response establish depth.                         | Ambition, in motion. Hold long enough to read.              |
+| 18–38%   | Brackets separate; the slash recedes; panels fan into their working positions.                                               | Transition into the second act by line.                     |
+| 38–62%   | Connections draw in sequence and a small number of packets travel between panels.                                            | Busywork, off your plate. Copy holds still.                 |
+| 62–82%   | Panels align and consolidate into one completed surface.                                                                     | Your next advantage. Contact/expertise action stays usable. |
+| 82–100%  | The camera relaxes toward a frontal view; the assembled object becomes smaller and moves toward the studio section's margin. | Release the hero into normal document flow.                 |
 
 Handoff: the brackets remain visible across the boundary. Their lighting darkens against the light studio background. Avoid a full-screen flash or an abrupt object reset.
 
@@ -87,7 +87,7 @@ Transition contract: old content fades and moves backward by about 12 px, new co
 
 Parallax: frame tilt at most 2–3 degrees on fine-pointer devices. Stop tilt on keyboard interaction. No tilting of body text.
 
-Marquee: retain it as a brief horizontal release between chapters. Tie its movement to this section's exit. No ↗ text separators and no independent perpetual loop. Its movement ends before the approach reading area dominates the viewport.
+Marquee: retain it as a brief horizontal release between chapters. Tie its movement to this section's exit. Use no diagonal-arrow text separators and no independent perpetual loop. Its movement ends before the approach reading area dominates the viewport.
 
 Handoff: the connection line leaves the preview edge and aligns with the vertical process rail in Approach. It does not cross the service descriptions.
 
@@ -197,5 +197,5 @@ Likely files: app/experience.tsx for composition and controls; app/living-system
 - Repeated service selection does not flash, remount unnecessarily, steal focus, or let scrolling overwrite the chosen service.
 - No clipped headings, overlapping hit targets, or horizontal overflow at narrow widths, short landscape heights, and 200% text enlargement.
 - Reduced motion includes all substantive copy; WebGL failure leaves a complete website.
-- No reintroduced ↗ text glyphs. Existing SVG arrow icons remain.
+- No reintroduced diagonal-arrow text glyphs. Existing SVG arrow icons remain.
 - Device measurements and browser checks are reported as actual results, not assumptions. Obtain an explicit browser-testing request before using browser inspection tools under this environment's Sites guidance.

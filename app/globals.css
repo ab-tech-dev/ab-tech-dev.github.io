@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 @theme inline {
  --color-background: var(--background); --color-foreground: var(--foreground);
- --font-sans: Arial, Helvetica, sans-serif; --font-mono: 'Courier New', monospace;
+ --font-sans: Manrope, Arial, Helvetica, sans-serif; --font-mono: 'Courier New', monospace;
  --font-heading: var(--font-sans); --color-primary: var(--primary);
  --color-primary-foreground: var(--primary-foreground); --color-secondary: var(--secondary);
  --color-secondary-foreground: var(--foreground); --color-muted: var(--muted);
@@ -15,10 +15,10 @@
  --color-card-foreground: var(--foreground); --radius-lg: 0;
 }
 :root {
- --background: #101713; --foreground: #eff1e9; --primary: #c4f975;
- --primary-foreground: #101713; --secondary: #1e2821; --muted: #1e2821;
- --muted-foreground: #a4aea1; --accent: #c4f975; --popover: #101713;
- --border: #eff1e926; --ease: cubic-bezier(.22,1,.36,1);
+ --background: #0d120f; --foreground: #f0f2eb; --primary: #c7f36b;
+ --primary-foreground: #0d120f; --secondary: #19211b; --muted: #19211b;
+ --muted-foreground: #a5afa1; --accent: #c7f36b; --popover: #0d120f;
+ --border: #eff1e920; --ease: cubic-bezier(.22,1,.36,1);
  --page-gutter: max(clamp(20px, 4.4vw, 88px), calc((100vw - 1600px) / 2));
  --text-body: 1rem;
  --text-label: .875rem;

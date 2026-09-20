@@ -1,0 +1,121 @@
+{
+  "meta": {
+    "name": "ab-tech-dev connected studio",
+    "version": "1.0.0",
+    "source": "Implemented website and local visual review",
+    "intent": "A precise, dimensional software studio experience for ambitious business owners"
+  },
+  "design_system": {
+    "colors": {
+      "canvas": "#0d1510",
+      "surface": "#101c12",
+      "surface_raised": "#dfe8d7",
+      "ink": "#eff1e9",
+      "ink_dark": "#142117",
+      "muted": "#a4b39e",
+      "line": "rgba(182, 200, 174, 0.16)",
+      "accent": "#c4f975"
+    },
+    "typography": {
+      "display": "Arial, Helvetica, sans-serif",
+      "editorial": "Manrope, Arial, sans-serif",
+      "metadata": "ui-monospace, SFMono-Regular, Consolas, monospace",
+      "display_scale": "clamp(46px, 8vw, 140px)",
+      "body_measure": "48ch to 62ch",
+      "headline_tracking": "-0.055em",
+      "body_line_height": 1.65
+    },
+    "spacing": {
+      "page_gutter": "clamp(20px, 4.4vw, 72px)",
+      "section_block": "clamp(72px, 10vw, 150px)",
+      "card_radius": "18px to 28px",
+      "rule_weight": "1px"
+    },
+    "components": [
+      "sticky navigation with active-section progress",
+      "three-stage cinematic hero",
+      "editorial statement section",
+      "three-option expertise selector",
+      "interactive service workbench",
+      "process rail",
+      "oversized contact close",
+      "signature footer"
+    ]
+  },
+  "design_style": {
+    "keywords": [
+      "precise",
+      "connected",
+      "quietly ambitious",
+      "dimensional",
+      "technical without coldness"
+    ],
+    "composition": {
+      "grammar": "continuous studio journey with one light interactive instrument inside a dark spatial world",
+      "density": "low-to-medium with large editorial pauses",
+      "alignment": "asymmetric grids anchored by strong shared rules",
+      "contrast": "dark forest canvas, warm pale type, one electric lime accent",
+      "mobile": "purpose-built single-column composition with controls before demonstrations"
+    },
+    "content_voice": {
+      "tone": "direct, calm, outcome-led",
+      "sentence_shape": "short declarations followed by concrete explanation",
+      "avoid": [
+        "generic capability claims",
+        "decorative badges",
+        "fake dashboards",
+        "excessive color changes"
+      ]
+    }
+  },
+  "visual_effects": {
+    "world": "one fixed Three.js stage shared across the page, held together by a restrained veil, animated grain, layered star field, diagonal galactic haze, scanlines, telemetry, global progress line and chapter readout",
+    "hero": {
+      "duration": "300vh desktop; compact staged flow on phone",
+      "acts": [
+        "Imagine: scattered system fragments reveal possibility",
+        "Connect: workflow nodes form a coherent path",
+        "Create: the system resolves into a confident outcome"
+      ],
+      "depth_planes": [
+        "particle atmosphere",
+        "orbital guides",
+        "interface fragments",
+        "extruded brand brackets"
+      ]
+    },
+    "scroll_motion": {
+      "engine": "GSAP ScrollTrigger plus deterministic shared scene state",
+      "pattern": "calm scrubbed transitions, section-linked camera poses, alternating depth entrances and restrained parallax",
+      "continuity": "adjacent artwork zones render together during handoffs",
+      "signature_move": "the visitor configures and approves a four-step automation handoff"
+    },
+    "spatial_chapters": [
+      "studio concentric field",
+      "expertise grid portal",
+      "process orbit engine",
+      "contact corridor and gateway",
+      "footer signature lockup"
+    ],
+    "micro_interactions": [
+      "active navigation progress",
+      "service panel crossfade",
+      "selectable software scope",
+      "human approval pause in automation",
+      "source-backed AI answer reveal"
+    ],
+    "accessibility": {
+      "reduced_motion": "static hero messages and brand marks; animated canvas removed",
+      "keyboard": "native buttons, selects, links, fieldsets and live status output",
+      "contrast": "high contrast text on dark and light surfaces"
+    }
+  },
+  "experience_curve": [
+    "curiosity",
+    "recognition",
+    "clarity",
+    "participation",
+    "confidence",
+    "invitation"
+  ]
+}

@@ -1,17 +1,22 @@
-# Motion implementation notes
+# Motion implementation and visual review
 
-The continuous scene and section choreography are implemented locally.
+The site now follows one connected studio journey while preserving the three-stage hero.
 
-- One shared Three.js renderer carries the existing brackets and panels through measured section destinations.
-- Named poses cover the hero acts, studio, expertise, three process stages, contact, and footer.
-- Scroll position determines the scene directly; chapter interpolation has no dependence on prior playback.
-- The service frame persists across selections, with inactive panels hidden from interaction and assistive technology. Detail animations begin when the preview enters view.
-- The hero, statement, services, process rail, contact lines, footer, and menu have distinct sequences.
-- Compact screens use normal-flow hero acts. Reduced motion preserves every substantive section and shows static brand marks.
-- The removed diagonal text glyph remains absent; designed SVG arrows remain.
+- One shared Three.js scene moves through the hero, studio, expertise, process, contact, and footer.
+- The three hero messages now share one pinned viewport on desktop and mobile. Scroll advances Imagine, Connect, and Create in place, then releases the page after the final state.
+- A fixed grain-and-veil stage, global chapter readout, and continuous page meter make those section changes read as one timeline rather than separate effects.
+- A restrained three-layer star field, diagonal Milky Way haze, mineral cyan/violet nebulae, Matrix glyph rain, scanlines, a moving signal beam, and edge telemetry add a cosmic hacker-film atmosphere without changing the forest-and-lime identity.
+- The shared scene now adds orbit rings, a glowing core, and instanced spatial nodes. Each chapter controls their density, depth, pulse, and rotation.
+- Studio copy converges through a radial field; expertise arrives through a moving grid and perspective workbench; process cards enter from alternating depth; contact typography converges around a portal; the footer resolves into the compact brand signature.
+- The post-hero pages use a consistent dark forest world, a self-hosted Manrope editorial system, shared rules, and one lime accent.
+- The expertise section includes three real demonstrations: a configurable software brief, a simulated automation handoff with human approval, and a source-labelled AI answer.
+- Compact screens keep each composition inside its reserved artwork area. Adjacent visible areas render together through the shared canvas, with scissor bounds keeping artwork away from reading content.
+- Menu navigation transfers focus into the destination section after closing.
+- Reduced motion removes the animated canvas, preserves all three hero messages, disables decorative transitions, and shows static brand marks.
+- The literal diagonal-arrow emoji remains absent; the interface uses designed SVG arrows.
 
-Validation completed: TypeScript check, lint on the four changed application TypeScript files, five motion-state tests, whitespace check, and a successful local HTTP response. The final production build passed, including the contact-layer adjustment.
+Visual review on 14 September 2026 used the live local site in the in-app browser. The 1440 x 900 review covered the preserved hero, studio statement, expertise workbench, process engine, contact gateway, footer signature, and the transitions between them. The 390 x 844 review covered the hero composition and expertise controls. Reduced-motion emulation showed the static process composition and content hierarchy correctly. Browser warning/error logs were empty. The contact entrance was tightened after review so direct navigation no longer leaves its headline clipped off-screen.
 
-Browser visual inspection, interaction testing, and device frame-rate measurements have not been performed. Pixel-perfect handoff alignment and performance targets from the storyboard should be assessed through that review before making claims about them. The closing 3D signature currently occupies its own reserved footer area; it does not yet crossfade into the individual letters of the footer wordmark.
+Validation: seven motion-state tests passed, TypeScript passed, scoped application lint passed, whitespace checks passed, and the production build completed. The build retains a large-chunk warning from the current Three.js/client bundle. No physical-device frame-rate measurements were made.
 
-Publication remains separate from this local implementation. No source upload or deployment was performed in this pass.
+No source upload or deployment was performed in this pass.

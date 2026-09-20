@@ -12,11 +12,11 @@ export function createLivingSystem(
   const renderer = new THREE.WebGLRenderer({
     alpha: true,
     antialias: !compact,
-    powerPreference: 'low-power',
+    powerPreference: compact ? 'low-power' : 'high-performance',
   });
   renderer.setClearColor(0x000000, 0);
   renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio, compact ? 1.25 : 1.6),
+    Math.min(window.devicePixelRatio, compact ? 1.1 : 1.35),
   );
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.domElement.setAttribute('aria-hidden', 'true');
@@ -33,6 +33,51 @@ export function createLivingSystem(
   scene.add(rim);
   const group = new THREE.Group();
   scene.add(group);
+
+  // A spatial field follows the brand mark through every chapter. It changes
+  // character with the story instead of repeating the same floating logo.
+  const orbitGroup = new THREE.Group();
+  group.add(orbitGroup);
+  const orbitGeometry = new THREE.TorusGeometry(2.7, 0.012, 4, 112);
+  const orbitMaterial = new THREE.MeshBasicMaterial({
+    color: 0xb9e982,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+  });
+  const orbitRings = [0, 1, 2].map((index) => {
+    const ring = new THREE.Mesh(orbitGeometry, orbitMaterial);
+    ring.rotation.set(index * 0.58, index * 0.72, index * 0.34);
+    ring.scale.setScalar(1 - index * 0.12);
+    orbitGroup.add(ring);
+    return ring;
+  });
+  const nodeMaterial = new THREE.MeshBasicMaterial({
+    color: 0xdcffad,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+  });
+  const chapterNodes = new THREE.InstancedMesh(
+    new THREE.IcosahedronGeometry(0.055, 1),
+    nodeMaterial,
+    14,
+  );
+  orbitGroup.add(chapterNodes);
+  const nodeDummy = new THREE.Object3D();
+  const coreMaterial = new THREE.MeshBasicMaterial({
+    color: 0x9fe84f,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const core = new THREE.Mesh(
+    new THREE.SphereGeometry(1.15, 28, 18),
+    coreMaterial,
+  );
+  core.position.z = -0.9;
+  group.add(core);
 
   // The brand brackets remain the same objects throughout the scroll story.
   const bracketShape = new THREE.Shape();
@@ -261,7 +306,16 @@ export function createLivingSystem(
   let px = 0,
     py = 0;
   return {
-    render(time: number, still = false) {
+    clear() {
+      if (lost) return;
+      renderer.setScissorTest(false);
+      renderer.clear();
+    },
+    render(
+      time: number,
+      still = false,
+      clip?: { x: number; y: number; width: number; height: number },
+    ) {
       if (lost || !width || !height || (still && !dirty)) return;
       const pose = samplePose(state.chapter);
       px = mix(px, still ? 0 : state.pointerX, 0.08);
@@ -274,9 +328,11 @@ export function createLivingSystem(
       group.position.set(
         (state.x - width / 2) * unit,
         (height / 2 - state.y) * unit,
-        0,
+        (pose.depth - 0.7) * 0.18,
       );
-      group.scale.setScalar(Math.max(0.01, (state.width * unit) / 6.5));
+      group.scale.setScalar(
+        Math.max(0.01, (state.width * unit) / 6.5) * (0.94 + pose.depth * 0.07),
+      );
       const interactive = state.chapter < 2.5 ? 1 : 0.35;
       group.rotation.set(
         pose.rx + py * 0.035 * interactive,
@@ -330,7 +386,55 @@ export function createLivingSystem(
       }
       points.material.opacity = state.chapter < 2.7 ? 0.3 : 0.08;
       points.rotation.z = still ? 0 : time * 0.006;
+      orbitMaterial.opacity = pose.orbit * (0.12 + pose.pulse * 0.12);
+      orbitGroup.visible = pose.orbit > 0.01 || pose.nodes > 0.01;
+      orbitGroup.rotation.set(
+        pose.rx * -0.45,
+        pose.ry * 0.35,
+        pose.rz + (still ? 0 : time * 0.018 * pose.orbit),
+      );
+      orbitGroup.scale.setScalar(0.9 + pose.depth * 0.1);
+      orbitRings.forEach((ring, index) => {
+        const direction = index % 2 ? -1 : 1;
+        ring.rotation.z =
+          index * 0.34 + (still ? 0 : time * 0.012 * direction * pose.orbit);
+      });
+      nodeMaterial.opacity = pose.nodes * 0.82;
+      chapterNodes.visible = pose.nodes > 0.01;
+      if (chapterNodes.visible) {
+        for (let i = 0; i < 14; i++) {
+          const angle =
+            (i / 14) * Math.PI * 2 + time * 0.025 * (i % 2 ? -1 : 1);
+          const radius = 2.5 + (i % 3) * 0.34 + pose.depth * 0.18;
+          nodeDummy.position.set(
+            Math.cos(angle) * radius,
+            Math.sin(angle) * radius * (0.58 + (i % 2) * 0.12),
+            -0.6 + ((i * 7) % 9) * 0.16,
+          );
+          const nodeScale = (0.65 + (i % 4) * 0.16) * (0.8 + pose.pulse * 0.35);
+          nodeDummy.scale.setScalar(nodeScale);
+          nodeDummy.updateMatrix();
+          chapterNodes.setMatrixAt(i, nodeDummy.matrix);
+        }
+        chapterNodes.instanceMatrix.needsUpdate = true;
+      }
+      const breathing = still
+        ? 1
+        : 1 + Math.sin(time * 0.085) * 0.08 * pose.pulse;
+      core.scale.setScalar((0.72 + pose.depth * 0.16) * breathing);
+      coreMaterial.opacity = 0.025 + pose.pulse * 0.055;
+      renderer.autoClear = !clip;
+      if (clip) {
+        renderer.setScissor(
+          clip.x,
+          height - clip.y - clip.height,
+          clip.width,
+          clip.height,
+        );
+        renderer.setScissorTest(true);
+      }
       renderer.render(scene, camera);
+      renderer.setScissorTest(false);
       dirty = false;
       host.classList.add('scene-ready');
     },
