@@ -2406,15 +2406,15 @@
 
 /* Hero scene placement: lower the 3D system without moving the copy. */
 .motion-desktop .scene-zone-hero {
-  top: 20%;
+  top: 22%;
 }
 
 .motion-compact.motion-pinned .scene-zone-hero {
-  top: 57%;
+  top: 59%;
 }
 
 @media (min-width: 901px) and (max-height: 680px) {
   .motion-desktop .scene-zone-hero {
-    top: 20%;
+    top: 22%;
   }
 }
