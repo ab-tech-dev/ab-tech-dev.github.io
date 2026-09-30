@@ -20,7 +20,7 @@ type Anchor = {
 };
 type Stop = { at: number; chapter: number; anchor: number };
 
-export function createMotionStory(root: HTMLElement) {
+export function createMotionStory(root: HTMLElement, onReady?: () => void) {
   gsap.registerPlugin(ScrollTrigger);
   const media = gsap.matchMedia();
   let initialArrival = true;
@@ -28,14 +28,16 @@ export function createMotionStory(root: HTMLElement) {
     {
       reduced: '(prefers-reduced-motion: reduce)',
       compact: '(max-width: 900px)',
+      short: '(max-height: 560px)',
       fine: '(pointer: fine)',
     },
     (context) => {
       const reduced = Boolean(context.conditions?.reduced);
       const compact = Boolean(context.conditions?.compact);
+      const short = Boolean(context.conditions?.short);
       const fine = Boolean(context.conditions?.fine);
-      const desktop = !compact && !reduced;
-      const pinned = !reduced;
+      const desktop = !compact && !short && !reduced;
+      const pinned = !short && !reduced;
       const select = <T extends HTMLElement = HTMLElement>(selector: string) =>
         root.querySelector<T>(selector)!;
       const all = (selector: string) => [
@@ -45,6 +47,7 @@ export function createMotionStory(root: HTMLElement) {
       const track = select('.hero-track');
       const stage = select('.hero-stage');
       const acts = all('.hero-act');
+      const mobileStoryBeats = all('.mobile-story-beat');
       const zones = all('[data-scene-zone]');
       const steps = all('.process-step');
       const projectCases = all('.project-case');
@@ -95,6 +98,13 @@ export function createMotionStory(root: HTMLElement) {
       let lastSignature = '';
       let lastChange = 0;
       let lastSystemRender = -Infinity;
+      let systemVisible = true;
+      let readySent = false;
+      const signalReady = () => {
+        if (readySent) return;
+        readySent = true;
+        onReady?.();
+      };
       const setAct = (value: number) => {
         if (activeAct === value) return;
         activeAct = value;
@@ -250,6 +260,67 @@ export function createMotionStory(root: HTMLElement) {
           0,
           Math.min(anchor.travel, scroll + anchor.stickyTop - anchor.parentTop),
         );
+      const visibleCompactZones = (scroll: number) =>
+        anchors.flatMap((anchor, index) => {
+          const center = anchorY(anchor, scroll);
+          return anchor.width > 0 &&
+            anchor.height > 0 &&
+            center + anchor.height / 2 > 76 &&
+            center - anchor.height / 2 < window.innerHeight
+            ? [index]
+            : [];
+        });
+      const renderCompactSystem = (
+        time: number,
+        scroll: number,
+        chapter: number,
+        compactZones: number[],
+      ) => {
+        if (!system) return;
+        system.clear();
+        const zoneChapters: Record<string, number> = {
+          'hero-0': 0,
+          'hero-1': 1,
+          'hero-2': 2,
+          studio: 3,
+          expertise: 4,
+          process: 5,
+          contact: 8,
+          footer: 9,
+        };
+        compactZones.forEach((index) => {
+          const anchor = anchors[index];
+          const name = zones[index].dataset.sceneZone!;
+          state.chapter =
+            name === 'hero'
+              ? chapter
+              : name === 'process'
+                ? Math.max(5, Math.min(7, chapter))
+                : (zoneChapters[name] ?? 0);
+          state.x = anchor.x;
+          state.y = anchorY(anchor, scroll);
+          state.width = anchor.width * 0.88;
+          const upper = Math.max(76, state.y - anchor.height / 2);
+          const bottom = Math.min(
+            window.innerHeight,
+            state.y + anchor.height / 2,
+          );
+          const left = Math.max(0, anchor.x - anchor.areaWidth / 2);
+          const right = Math.min(
+            window.innerWidth,
+            anchor.x + anchor.areaWidth / 2,
+          );
+          const clipWidth = Math.max(0, right - left);
+          const clipHeight = Math.max(0, bottom - upper);
+          if (clipWidth > 0 && clipHeight > 0)
+            system!.render(time, false, {
+              x: left,
+              y: upper,
+              width: clipWidth,
+              height: clipHeight,
+            });
+        });
+      };
       const tick = (time: number) => {
         if (
           document.hidden ||
@@ -258,6 +329,39 @@ export function createMotionStory(root: HTMLElement) {
         )
           return;
         const scroll = window.scrollY;
+        const inputSignature = [
+          scroll,
+          state.pointerX,
+          state.pointerY,
+          window.innerWidth,
+          window.innerHeight,
+        ].join(':');
+        const inputChanged = inputSignature !== lastSignature;
+        const systemInMotion = state.chapter > 0.5 && state.chapter < 1.5;
+        if (!inputChanged) {
+          const mobileHeroAlive =
+            compact &&
+            pinned &&
+            scroll <= heroTravel + 2 &&
+            state.chapter <= 2.05;
+          if (
+            system &&
+            systemVisible &&
+            (systemInMotion || mobileHeroAlive) &&
+            time - lastSystemRender >= (compact ? 1 / 20 : 1 / 36)
+          ) {
+            lastSystemRender = time;
+            if (desktop) system.render(time);
+            else
+              renderCompactSystem(
+                time,
+                scroll,
+                state.chapter,
+                visibleCompactZones(scroll),
+              );
+          }
+          return;
+        }
         const position = resolveStops(
           scroll,
           stops.map((stop) => stop.at),
@@ -275,17 +379,7 @@ export function createMotionStory(root: HTMLElement) {
         state.x = mix(from.x, to.x, t);
         state.y = mix(anchorY(from, scroll), anchorY(to, scroll), t);
         state.width = mix(from.width, to.width, t);
-        const compactZones = desktop
-          ? []
-          : anchors.flatMap((anchor, index) => {
-              const center = anchorY(anchor, scroll);
-              return anchor.width > 0 &&
-                anchor.height > 0 &&
-                center + anchor.height / 2 > 76 &&
-                center - anchor.height / 2 < window.innerHeight
-                ? [index]
-                : [];
-            });
+        const compactZones = desktop ? [] : visibleCompactZones(scroll);
         const chapter = state.chapter;
         if (desktop && chapter > 3 && chapter < 5) {
           const anchor =
@@ -355,19 +449,13 @@ export function createMotionStory(root: HTMLElement) {
             else link.removeAttribute('aria-current');
           });
         }
-        const signature = [
-          scroll,
-          state.pointerX,
-          state.pointerY,
-          window.innerWidth,
-          window.innerHeight,
-        ].join(':');
-        if (signature !== lastSignature) lastChange = time;
+        lastChange = time;
         const moving = chapter > 0.5 && chapter < 1.5;
         const visible = desktop
           ? state.y > -state.width && state.y < window.innerHeight + state.width
           : compactZones.length > 0;
         host.style.visibility = visible ? 'visible' : 'hidden';
+        systemVisible = visible;
         const systemFrameInterval = compact ? 1 / 24 : 1 / 36;
         if (
           system &&
@@ -377,57 +465,14 @@ export function createMotionStory(root: HTMLElement) {
         ) {
           lastSystemRender = time;
           if (desktop) system.render(time);
-          else {
-            system.clear();
-            const chapters: Record<string, number> = {
-              'hero-0': 0,
-              'hero-1': 1,
-              'hero-2': 2,
-              studio: 3,
-              expertise: 4,
-              process: 5,
-              contact: 8,
-              footer: 9,
-            };
-            compactZones.forEach((index) => {
-              const anchor = anchors[index];
-              const name = zones[index].dataset.sceneZone!;
-              state.chapter =
-                name === 'hero'
-                  ? chapter
-                  : name === 'process'
-                  ? Math.max(5, Math.min(7, chapter))
-                  : (chapters[name] ?? 0);
-              state.x = anchor.x;
-              state.y = anchorY(anchor, scroll);
-              state.width = anchor.width * 0.88;
-              const upper = Math.max(76, state.y - anchor.height / 2);
-              const bottom = Math.min(
-                window.innerHeight,
-                state.y + anchor.height / 2,
-              );
-              const left = Math.max(0, anchor.x - anchor.areaWidth / 2);
-              const right = Math.min(
-                window.innerWidth,
-                anchor.x + anchor.areaWidth / 2,
-              );
-              const clipWidth = Math.max(0, right - left);
-              const clipHeight = Math.max(0, bottom - upper);
-              if (clipWidth > 0 && clipHeight > 0)
-                system!.render(time, false, {
-                  x: left,
-                  y: upper,
-                  width: clipWidth,
-                  height: clipHeight,
-                });
-            });
-          }
+          else renderCompactSystem(time, scroll, chapter, compactZones);
           root.classList.toggle(
             'scene-available',
             host.classList.contains('scene-ready'),
           );
+          if (host.classList.contains('scene-ready')) signalReady();
         }
-        lastSignature = signature;
+        lastSignature = inputSignature;
       };
       measure();
       if (!reduced) {
@@ -451,6 +496,10 @@ export function createMotionStory(root: HTMLElement) {
             },
           });
           gsap.set(acts.slice(1), { autoAlpha: 0, y: 32 });
+          if (compact) {
+            gsap.set(mobileStoryBeats[0], { autoAlpha: 1, y: 0 });
+            gsap.set(mobileStoryBeats.slice(1), { autoAlpha: 0, y: 10 });
+          }
           timeline
             .to(
               acts[0],
@@ -473,6 +522,29 @@ export function createMotionStory(root: HTMLElement) {
               0.71,
             )
             .to({}, { duration: 0.19 }, 0.81);
+          if (compact) {
+            timeline
+              .to(
+                mobileStoryBeats[0],
+                { autoAlpha: 0, y: -8, duration: 0.08, ease: 'none' },
+                0.26,
+              )
+              .to(
+                mobileStoryBeats[1],
+                { autoAlpha: 1, y: 0, duration: 0.1, ease: 'none' },
+                0.34,
+              )
+              .to(
+                mobileStoryBeats[1],
+                { autoAlpha: 0, y: -8, duration: 0.08, ease: 'none' },
+                0.63,
+              )
+              .to(
+                mobileStoryBeats[2],
+                { autoAlpha: 1, y: 0, duration: 0.1, ease: 'none' },
+                0.7,
+              );
+          }
           gsap.to(select('.scene-orbit'), {
             rotation: 30,
             scale: 1.12,
@@ -926,6 +998,7 @@ export function createMotionStory(root: HTMLElement) {
           ?.scrollIntoView({ behavior: 'instant', block: 'start' });
       initialArrival = false;
       tick(0);
+      if (reduced || !system) signalReady();
       return () => {
         destroyed = true;
         cancelAnimationFrame(measureFrame);

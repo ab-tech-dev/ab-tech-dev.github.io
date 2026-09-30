@@ -49,6 +49,7 @@ Review: repeating pale/dark sections, numbered eyebrow headers, identical slide-
 
 Global stage: a fixed Three.js system, grain, veil, progress line and chapter readout connect the page as one continuous sequence.
 Hero: one pinned three-act scene on desktop and mobile; deliberate pauses separate Imagine, Connect and Create before the page releases into Studio.
+Mobile hero story: the same signal persists through all three acts. It begins as loose work around an idea, becomes a live route with moving connections, then contracts into one completed system. A quiet status ledger names each turn without competing with the headline.
 Studio: concentric depth field, line-by-line convergence and a restrained connection motif.
 Expertise: a migrating grid and orbit field frame the perspective arrival of a stable workbench; service selection crossfades and enquiry state responds to visitor input.
 Approach: the shared system becomes a process engine while steps arrive from alternating depth positions and their rails fill with progress.

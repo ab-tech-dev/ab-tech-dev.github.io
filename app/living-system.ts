@@ -78,6 +78,19 @@ export function createLivingSystem(
   );
   core.position.z = -0.9;
   group.add(core);
+  const completionMaterial = new THREE.MeshBasicMaterial({
+    color: 0xc4f975,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const completionRing = new THREE.Mesh(
+    new THREE.TorusGeometry(2.05, 0.018, 5, compact ? 64 : 96),
+    completionMaterial,
+  );
+  completionRing.position.z = -0.35;
+  group.add(completionRing);
 
   // The brand brackets remain the same objects throughout the scroll story.
   const bracketShape = new THREE.Shape();
@@ -354,6 +367,15 @@ export function createLivingSystem(
           .copy(scattered[i])
           .lerp(connected[i], pose.spread)
           .lerp(assembled[i], pose.assembled);
+        if (compact && state.chapter < 0.72 && !still) {
+          const looseSignal = 1 - state.chapter / 0.72;
+          panel.position.x +=
+            Math.sin(time * 0.72 + i * 1.37) * 0.075 * looseSignal;
+          panel.position.y +=
+            Math.cos(time * 0.58 + i * 1.11) * 0.09 * looseSignal;
+          panel.position.z +=
+            Math.sin(time * 0.44 + i * 0.83) * 0.055 * looseSignal;
+        }
         panel.rotation.set(
           (1 - pose.spread) * (i % 2 ? -0.12 : 0.12),
           (1 - pose.spread) * (i % 2 ? 0.2 : -0.2),
@@ -423,6 +445,14 @@ export function createLivingSystem(
         : 1 + Math.sin(time * 0.085) * 0.08 * pose.pulse;
       core.scale.setScalar((0.72 + pose.depth * 0.16) * breathing);
       coreMaterial.opacity = 0.025 + pose.pulse * 0.055;
+      const completion = THREE.MathUtils.smoothstep(state.chapter, 1.52, 2);
+      completionRing.visible = compact && completion > 0.01;
+      completionMaterial.opacity =
+        completion * (0.12 + Math.sin(time * 1.9) * 0.035);
+      completionRing.scale.setScalar(
+        0.82 + completion * 0.2 + Math.sin(time * 1.25) * 0.018,
+      );
+      completionRing.rotation.z = still ? 0 : time * 0.055;
       renderer.autoClear = !clip;
       if (clip) {
         renderer.setScissor(

@@ -1,6 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
+import Image from 'next/image';
 import {
   Dialog,
   DialogClose,
@@ -10,10 +17,14 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import ServicePlayground from './service-playground';
+import AmbientStars from './ambient-stars';
+import StartupLoader from './startup-loader';
 import { ArrowRight, Code2, GitBranch, Sparkles } from 'lucide-react';
 
 const CONTACT =
   'mailto:mrjoshuaability@gmail.com?subject=Let%E2%80%99s%20build%20something';
+const WHATSAPP =
+  'https://wa.me/2347060700263?text=Hi%20ab-tech-dev%2C%20I%27d%20like%20to%20discuss%20a%20project.';
 const NAV = [
   ['The studio', '#about'],
   ['Our expertise', '#expertise'],
@@ -53,8 +64,9 @@ const PROJECTS = [
     description:
       'A conversion-focused salon experience that turns a large service catalogue into one clear visual journey, with responsive booking paths, a style gallery, and polished editorial motion.',
     stack: ['Creative frontend', 'Responsive UX', 'Content system'],
-    image: '/projects/infinity-salon-current.webp',
-    imageAlt: 'Infinity Hair and Beauty website homepage',
+    image: '/projects/infinity-salon-site.webp',
+    imageAlt: 'Live Infinity Hair and Beauty desktop homepage',
+    visual: 'Live site / Desktop',
     source: 'https://github.com/ab-tech-dev/infinitysalon',
     live: 'https://infinitysalon-flame.vercel.app',
   },
@@ -66,8 +78,9 @@ const PROJECTS = [
     description:
       'A multi-vendor commerce platform spanning product catalogues, role-based operations, cart and order lifecycles, Paystack payments, wallets, referrals, delivery tracking, and administration.',
     stack: ['Django REST', 'PostgreSQL', 'Redis + Celery'],
-    image: '/projects/dandelionz-live.webp',
-    imageAlt: 'Dandelionz marketplace best sellers campaign',
+    image: '/projects/dandelionz-site.webp',
+    imageAlt: 'Live Dandelionz mobile marketplace showing product categories and listings',
+    visual: 'Live store / Mobile',
     live: 'https://app.dandelionz.com.ng',
     source: 'https://github.com/ab-tech-dev/dandelionz',
   },
@@ -79,8 +92,9 @@ const PROJECTS = [
     description:
       'A retrieval assistant that answers questions from restaurant feedback while keeping inference and embeddings local. Built for fast repeated queries with caching and a persistent vector store.',
     stack: ['Ollama', 'LangChain', 'Chroma'],
-    image: '/projects/local-review-ai.png',
-    imageAlt: 'Local Review Intelligence project repository preview',
+    image: '/projects/local-review-intelligence-v2.webp',
+    imageAlt: 'Conceptual visualization of restaurant reviews becoming structured local intelligence',
+    visual: 'System visual / Local inference',
     source: 'https://github.com/ab-tech-dev/Local_AI_Agent',
   },
   {
@@ -91,8 +105,9 @@ const PROJECTS = [
     description:
       'An end-to-end generative AI reference assistant with document embeddings, semantic retrieval, a Flask interface, container delivery, and an AWS deployment workflow.',
     stack: ['Python + Flask', 'Pinecone', 'Docker + AWS'],
-    image: '/projects/medical-assistant.png',
-    imageAlt: 'Medical Knowledge Assistant project repository preview',
+    image: '/projects/medical-knowledge-v2.webp',
+    imageAlt: 'Conceptual visualization of medical references being retrieved with traceable evidence',
+    visual: 'System visual / Retrieval',
     source: 'https://github.com/ab-tech-dev/medical_chatbot',
   },
 ];
@@ -139,23 +154,31 @@ function SectionLabel({
   );
 }
 
-function useExperience(root: RefObject<HTMLDivElement | null>) {
+function useExperience(
+  root: RefObject<HTMLDivElement | null>,
+  onReady: () => void,
+) {
   useEffect(() => {
     let cancelled = false;
     let cleanup: (() => void) | undefined;
-    import('./motion-story')
-      .then(({ createMotionStory }) => {
-        if (!cancelled && root.current)
-          cleanup = createMotionStory(root.current);
-      })
-      .catch(() => {
-        root.current?.classList.add('animation-fallback');
-      });
+    // Let the loader paint and start typing before 3D/GSAP initialization.
+    const start = window.setTimeout(() => {
+      import('./motion-story')
+        .then(({ createMotionStory }) => {
+          if (!cancelled && root.current)
+            cleanup = createMotionStory(root.current, onReady);
+        })
+        .catch(() => {
+          root.current?.classList.add('animation-fallback');
+          onReady();
+        });
+    }, 120);
     return () => {
       cancelled = true;
+      window.clearTimeout(start);
       cleanup?.();
     };
-  }, [root]);
+  }, [root, onReady]);
 }
 
 function SceneZone({ name }: { name: string }) {
@@ -172,20 +195,51 @@ function SceneZone({ name }: { name: string }) {
 
 export default function Experience() {
   const root = useRef<HTMLDivElement>(null);
+  const [sceneReady, setSceneReady] = useState(false);
+  const [minimumElapsed, setMinimumElapsed] = useState(false);
+  const [loaderVisible, setLoaderVisible] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const pendingNavigation = useRef<string | null>(null);
   const [service, setService] = useState(0);
-  useExperience(root);
+  const markSceneReady = useCallback(() => setSceneReady(true), []);
+  useExperience(root, markSceneReady);
+  useEffect(() => {
+    document.documentElement.classList.add('is-booting');
+    const minimum = window.setTimeout(() => setMinimumElapsed(true), 2100);
+    const failsafe = window.setTimeout(() => {
+      setSceneReady(true);
+      setMinimumElapsed(true);
+    }, 5000);
+    return () => {
+      window.clearTimeout(minimum);
+      window.clearTimeout(failsafe);
+      document.documentElement.classList.remove('is-booting');
+    };
+  }, []);
+  const loaderLeaving = sceneReady && minimumElapsed;
+  useEffect(() => {
+    if (!loaderLeaving) return;
+    document.documentElement.classList.remove('is-booting');
+    const remove = window.setTimeout(() => setLoaderVisible(false), 850);
+    return () => window.clearTimeout(remove);
+  }, [loaderLeaving]);
   return (
-    <div ref={root} className="experience" id="top" data-menu-open={menuOpen}>
+    <div
+      ref={root}
+      className="experience"
+      id="top"
+      data-menu-open={menuOpen}
+      aria-busy={loaderVisible}
+    >
+      {loaderVisible && <StartupLoader leaving={loaderLeaving} />}
       <div className="living-system" aria-hidden="true" />
+      <AmbientStars />
       <div className="cosmic-atmosphere" aria-hidden="true">
         <b />
       </div>
       <div className="motion-veil" aria-hidden="true" />
       <div className="motion-grain" aria-hidden="true" />
       <div className="signal-overlay" aria-hidden="true">
-        <i />
         <div className="signal-telemetry">
           <span>SYS://AB-TECH</span>
           <span>CHANNEL 03 · LIVE</span>
@@ -328,6 +382,20 @@ export default function Experience() {
               <i />
             </div>
             <SceneZone name="hero" />
+            <div className="mobile-story-ledger" aria-hidden="true">
+              <div className="mobile-story-beat">
+                <span>RAW SIGNAL</span>
+                <p>An idea enters the system.</p>
+              </div>
+              <div className="mobile-story-beat">
+                <span>LIVE ROUTE</span>
+                <p>Inputs connect. Decisions move.</p>
+              </div>
+              <div className="mobile-story-beat">
+                <span>SYSTEM READY</span>
+                <p>The work becomes momentum.</p>
+              </div>
+            </div>
             <div className="scene-topline" aria-hidden="true">
               <span>
                 <i /> A SYSTEM OF POSSIBILITIES
@@ -591,15 +659,16 @@ export default function Experience() {
                 </div>
                 <div className="project-visual">
                   <figure className="project-image-frame">
-                    <img
+                    <Image
                       src={project.image}
                       alt={project.imageAlt}
+                      fill
+                      sizes="(max-width: 900px) 96vw, 48vw"
                       loading="lazy"
-                      decoding="async"
                     />
                     <figcaption>
                       <span>Project / {project.index}</span>
-                      <span>{project.type}</span>
+                      <span>{project.visual}</span>
                     </figcaption>
                   </figure>
                 </div>
@@ -700,8 +769,13 @@ export default function Experience() {
                 <br />
                 We’ll work out the next move together.
               </p>
-              <a className="contact-button" href={CONTACT}>
-                <Roll>Start a project</Roll>
+              <a
+                className="contact-button"
+                href={WHATSAPP}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Roll>Chat on WhatsApp</Roll>
                 <span className="arrow-circle">
                   <Arrow />
                 </span>
