@@ -1781,6 +1781,9 @@
 .project-commerce {
   --project-accent: #8fe9c1;
 }
+.project-optical {
+  --project-accent: #61c6ea;
+}
 .project-local-ai {
   --project-accent: #a9b8ff;
 }
@@ -1921,6 +1924,10 @@
 .project-salon .project-image-frame img {
   object-position: center top;
   filter: saturate(0.88) brightness(0.8) contrast(1.05);
+}
+.project-optical .project-image-frame img {
+  object-position: center center;
+  filter: saturate(0.84) brightness(0.82) contrast(1.04);
 }
 .project-commerce .project-image-frame {
   background:

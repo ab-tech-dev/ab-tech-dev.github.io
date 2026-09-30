@@ -58,6 +58,20 @@ const SERVICES = [
 const PROJECTS = [
   {
     index: '01',
+    slug: 'optical',
+    type: 'Clinic experience + operations',
+    title: 'Jay Opticals & Eye Clinic',
+    description:
+      'A complete digital platform for an optical clinic: a cinematic public website and eyewear catalogue paired with secure staff tools for patients, appointments, prescriptions, inventory, billing, reports, and notifications.',
+    stack: ['Next.js', 'Clinic operations', 'Progressive web app'],
+    image: '/projects/jay-opticals-hero.jpg',
+    imageAlt: 'Jay Opticals campaign portrait viewed through an optical lens',
+    visual: 'Live platform / Responsive',
+    source: 'https://github.com/ab-tech-dev/jay-opticals-eye-clinic',
+    live: 'https://jay-opticals-oms.vercel.app',
+  },
+  {
+    index: '02',
     slug: 'salon',
     type: 'Live client experience',
     title: 'Infinity Hair & Beauty',
@@ -71,7 +85,7 @@ const PROJECTS = [
     live: 'https://infinitysalon-flame.vercel.app',
   },
   {
-    index: '02',
+    index: '03',
     slug: 'commerce',
     type: 'Commerce infrastructure',
     title: 'Dandelionz',
@@ -85,7 +99,7 @@ const PROJECTS = [
     source: 'https://github.com/ab-tech-dev/dandelionz',
   },
   {
-    index: '03',
+    index: '04',
     slug: 'local-ai',
     type: 'Private applied AI',
     title: 'Local Review Intelligence',
@@ -98,7 +112,7 @@ const PROJECTS = [
     source: 'https://github.com/ab-tech-dev/Local_AI_Agent',
   },
   {
-    index: '04',
+    index: '05',
     slug: 'medical-ai',
     type: 'Knowledge retrieval system',
     title: 'Medical Knowledge Assistant',
