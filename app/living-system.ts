@@ -15,9 +15,6 @@ export function createLivingSystem(
     powerPreference: compact ? 'low-power' : 'high-performance',
   });
   renderer.setClearColor(0x000000, 0);
-  renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio, compact ? 1.1 : 1.35),
-  );
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.domElement.setAttribute('aria-hidden', 'true');
   host.appendChild(renderer.domElement);
@@ -63,6 +60,7 @@ export function createLivingSystem(
     nodeMaterial,
     14,
   );
+  chapterNodes.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   orbitGroup.add(chapterNodes);
   const nodeDummy = new THREE.Object3D();
   const coreMaterial = new THREE.MeshBasicMaterial({
@@ -217,6 +215,8 @@ export function createLivingSystem(
     middle.z += 0.6;
     return new THREE.CatmullRomCurve3([start, middle, end]);
   });
+  const wires = new THREE.Group();
+  group.add(wires);
   const wireMaterials: THREE.MeshBasicMaterial[] = [];
   curves.forEach((curve) => {
     const material = new THREE.MeshBasicMaterial({
@@ -225,7 +225,7 @@ export function createLivingSystem(
       opacity: 0,
     });
     wireMaterials.push(material);
-    group.add(
+    wires.add(
       new THREE.Mesh(
         new THREE.TubeGeometry(curve, 36, 0.008, 4, false),
         material,
@@ -242,6 +242,7 @@ export function createLivingSystem(
     packetMaterial,
     20,
   );
+  packets.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   group.add(packets);
   const dummy = new THREE.Object3D();
 
@@ -285,7 +286,14 @@ export function createLivingSystem(
       return;
     width = nextWidth;
     height = nextHeight;
-    renderer.setSize(width, height);
+    // Bound the fill cost on large/high-density screens without changing CSS size.
+    const density = Math.min(
+      window.devicePixelRatio || 1,
+      compact ? 1.1 : 1.35,
+      Math.sqrt(2_000_000 / (width * height)),
+    );
+    renderer.setPixelRatio(density);
+    renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     dirty = true;
@@ -318,7 +326,16 @@ export function createLivingSystem(
   const packetPoints = curves.map((curve) => curve.getSpacedPoints(120));
   let px = 0,
     py = 0;
+  let prepared = false;
+  let preparation: Promise<unknown> | undefined;
   return {
+    prepare() {
+      // Let supporting drivers compile shaders in parallel before the first draw.
+      preparation ??= renderer.compileAsync(scene, camera).then(() => {
+        prepared = true;
+      });
+      return preparation;
+    },
     clear() {
       if (lost) return;
       renderer.setScissorTest(false);
@@ -329,7 +346,7 @@ export function createLivingSystem(
       still = false,
       clip?: { x: number; y: number; width: number; height: number },
     ) {
-      if (lost || !width || !height || (still && !dirty)) return;
+      if (!prepared || lost || !width || !height || (still && !dirty)) return;
       const pose = samplePose(state.chapter);
       px = mix(px, still ? 0 : state.pointerX, 0.08);
       py = mix(py, still ? 0 : state.pointerY, 0.08);
@@ -392,6 +409,7 @@ export function createLivingSystem(
       wireMaterials.forEach((material) => {
         material.opacity = pose.wires * 0.65;
       });
+      wires.visible = pose.wires > 0.005;
       packetMaterial.opacity = pose.wires;
       packets.visible = pose.wires > 0.01;
       if (packets.visible) {
@@ -409,6 +427,9 @@ export function createLivingSystem(
       points.material.opacity = state.chapter < 2.7 ? 0.3 : 0.08;
       points.rotation.z = still ? 0 : time * 0.006;
       orbitMaterial.opacity = pose.orbit * (0.12 + pose.pulse * 0.12);
+      orbitRings.forEach((ring) => {
+        ring.visible = pose.orbit > 0.005;
+      });
       orbitGroup.visible = pose.orbit > 0.01 || pose.nodes > 0.01;
       orbitGroup.rotation.set(
         pose.rx * -0.45,
@@ -466,7 +487,8 @@ export function createLivingSystem(
       renderer.render(scene, camera);
       renderer.setScissorTest(false);
       dirty = false;
-      host.classList.add('scene-ready');
+      if (!host.classList.contains('scene-ready'))
+        host.classList.add('scene-ready');
     },
     destroy() {
       observer.disconnect();
@@ -486,10 +508,15 @@ export function createLivingSystem(
           ).forEach((material) => materials.add(material));
         }
       });
-      geometries.forEach((geometry) => geometry.dispose());
-      materials.forEach((material) => material.dispose());
-      textures.forEach((texture) => texture.dispose());
-      renderer.dispose();
+      const dispose = () => {
+        geometries.forEach((geometry) => geometry.dispose());
+        materials.forEach((material) => material.dispose());
+        textures.forEach((texture) => texture.dispose());
+        renderer.dispose();
+      };
+      // An in-flight compile still references the renderer's material programs.
+      if (preparation) void preparation.then(dispose, dispose);
+      else dispose();
       renderer.domElement.remove();
       host.classList.remove('scene-ready');
     },

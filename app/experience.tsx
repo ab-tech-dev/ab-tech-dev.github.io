@@ -219,11 +219,11 @@ export default function Experience() {
   useExperience(root, markSceneReady);
   useEffect(() => {
     document.documentElement.classList.add('is-booting');
-    const minimum = window.setTimeout(() => setMinimumElapsed(true), 2100);
+    const minimum = window.setTimeout(() => setMinimumElapsed(true), 0);
     const failsafe = window.setTimeout(() => {
       setSceneReady(true);
       setMinimumElapsed(true);
-    }, 5000);
+    }, 1200);
     return () => {
       window.clearTimeout(minimum);
       window.clearTimeout(failsafe);
@@ -234,7 +234,7 @@ export default function Experience() {
   useEffect(() => {
     if (!loaderLeaving) return;
     document.documentElement.classList.remove('is-booting');
-    const remove = window.setTimeout(() => setLoaderVisible(false), 850);
+    const remove = window.setTimeout(() => setLoaderVisible(false), 250);
     return () => window.clearTimeout(remove);
   }, [loaderLeaving]);
   return (
@@ -660,7 +660,7 @@ export default function Experience() {
                   </ul>
                   <div className="project-actions">
                     {'live' in project && project.live ? (
-                      <a href={project.live} target="_blank" rel="noreferrer">
+                      <a href={project.live} target="_blank" rel="noreferrer" aria-label={`View ${project.title} live project`}>
                         <Roll>View live project</Roll>
                         <Arrow />
                       </a>

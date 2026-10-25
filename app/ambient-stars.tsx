@@ -30,15 +30,15 @@ export default function AmbientStars() {
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    const reduceMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches;
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let reduceMotion = motionQuery.matches;
     const random = seeded(4103);
     let width = 0;
     let height = 0;
     let stars: Star[] = [];
     let frame = 0;
-    let lastDraw = 0;
+    let timer = 0;
+    let resizeFrame = 0;
     let visible = !document.hidden;
     let scrolling = false;
     let scrollIdleTimer = 0;
@@ -88,46 +88,72 @@ export default function AmbientStars() {
       }
     };
 
-    const tick = (time: number) => {
-      const frameInterval = width < 700 ? 72 : 50;
-      if (
-        visible &&
-        !scrolling &&
-        (reduceMotion || time - lastDraw > frameInterval)
-      ) {
-        lastDraw = time;
-        draw(time);
-      }
-      if (!reduceMotion) frame = requestAnimationFrame(tick);
+    const stop = () => {
+      window.clearTimeout(timer);
+      cancelAnimationFrame(frame);
+    };
+    const schedule = () => {
+      if (!visible || scrolling || reduceMotion) return;
+      timer = window.setTimeout(
+        () => {
+          frame = requestAnimationFrame((time) => {
+            draw(time);
+            schedule();
+          });
+        },
+        width < 700 ? 72 : 50,
+      );
     };
 
     const onScroll = () => {
       scrolling = true;
+      stop();
       window.clearTimeout(scrollIdleTimer);
       scrollIdleTimer = window.setTimeout(() => {
         scrolling = false;
+        schedule();
       }, 140);
     };
 
     const onVisibility = () => {
       visible = !document.hidden;
-      if (visible && reduceMotion) draw(performance.now());
+      stop();
+      if (visible) {
+        draw(performance.now());
+        schedule();
+      }
+    };
+    const onMotion = () => {
+      reduceMotion = motionQuery.matches;
+      onVisibility();
+    };
+    const onResize = () => {
+      cancelAnimationFrame(resizeFrame);
+      resizeFrame = requestAnimationFrame(() => {
+        resize();
+        draw(performance.now());
+      });
     };
 
     resize();
-    if (reduceMotion) draw(0);
-    else frame = requestAnimationFrame(tick);
-    window.addEventListener('resize', resize, { passive: true });
+    draw(0);
+    schedule();
+    window.addEventListener('resize', onResize, { passive: true });
     window.addEventListener('scroll', onScroll, { passive: true });
     document.addEventListener('visibilitychange', onVisibility);
+    motionQuery.addEventListener('change', onMotion);
     return () => {
-      cancelAnimationFrame(frame);
+      stop();
+      cancelAnimationFrame(resizeFrame);
       window.clearTimeout(scrollIdleTimer);
-      window.removeEventListener('resize', resize);
+      window.removeEventListener('resize', onResize);
       window.removeEventListener('scroll', onScroll);
       document.removeEventListener('visibilitychange', onVisibility);
+      motionQuery.removeEventListener('change', onMotion);
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="ambient-stars" aria-hidden="true" />;
+  return (
+    <canvas ref={canvasRef} className="ambient-stars" aria-hidden="true" />
+  );
 }

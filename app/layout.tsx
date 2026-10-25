@@ -13,6 +13,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preload" href="/fonts/manrope-regular.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/manrope-semibold.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
+      </head>
       <body>{children}</body>
     </html>
   );

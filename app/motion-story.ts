@@ -1,12 +1,7 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { createLivingSystem } from './living-system';
-import {
-  clamp01,
-  mix,
-  resolveStops,
-  type SystemState,
-} from './motion-state';
+import type { createLivingSystem } from './living-system';
+import { clamp01, mix, resolveStops, type SystemState } from './motion-state';
 
 type Anchor = {
   x: number;
@@ -52,6 +47,8 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
       const steps = all('.process-step');
       const projectCases = all('.project-case');
       const progress = select('[data-progress]');
+      const globalProgress = select('.global-chapter i');
+      const chapterLines = all('.chapter-line i');
       const chapterReadout = select('[data-chapter-readout]');
       const services = select('.services-layout');
       const work = select('#work');
@@ -62,6 +59,7 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
       );
       const phraseLines = all('[data-phrase]');
       const serviceChoices = all('.service-choice');
+      const navLinks = all('.desktop-nav a');
 
       const state: SystemState = {
         chapter: 0,
@@ -77,16 +75,10 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
       root.classList.toggle('motion-pinned', pinned);
       root.classList.toggle('reduced-motion', reduced);
       let system: ReturnType<typeof createLivingSystem> | undefined;
-      if (!reduced) {
-        try {
-          system = createLivingSystem(host, state, compact);
-        } catch {
-          host.classList.add('scene-fallback');
-        }
-      }
       let destroyed = false;
       let anchors: Anchor[] = [];
       let stops: Stop[] = [];
+      let stopPositions: number[] = [];
       let stepStops: number[] = [];
       let sectionStops: number[] = [];
       let heroTravel = 1;
@@ -96,7 +88,8 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
       let activeSection = -1;
       let measureFrame = 0;
       let lastSignature = '';
-      let lastChange = 0;
+      let lastScroll = Number.NaN;
+      let lastInputUpdate = -Infinity;
       let lastSystemRender = -Infinity;
       let systemVisible = true;
       let readySent = false;
@@ -150,16 +143,15 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
         if (destroyed) return;
         const h = window.innerHeight;
         const shortDesktop = desktop && h <= 680;
-        serviceArt.classList.toggle(
-          'can-stick',
+        // Read both sizes before changing classes to avoid alternating reads/writes.
+        const artCanStick =
           desktop &&
-            serviceArt.getBoundingClientRect().height <
-              h - (shortDesktop ? 72 : 160),
-        );
-        lead.classList.toggle(
-          'can-stick',
-          desktop && lead.offsetHeight < h - (shortDesktop ? 40 : 160),
-        );
+          serviceArt.getBoundingClientRect().height <
+            h - (shortDesktop ? 72 : 160);
+        const leadCanStick =
+          desktop && lead.offsetHeight < h - (shortDesktop ? 40 : 160);
+        serviceArt.classList.toggle('can-stick', artCanStick);
+        lead.classList.toggle('can-stick', leadCanStick);
         anchors = zones.map(readAnchor);
         heroTravel = Math.max(1, track.offsetHeight - stage.offsetHeight);
         const zoneIndex = (name: string) =>
@@ -224,19 +216,19 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
                 make(anchorAt('footer') - h * 0.5, 9, 'footer'),
               ]
             : [
-              make(0, 0, 'hero-0'),
-              make(anchorAt('hero-0') - h * 0.45, 0, 'hero-0'),
-              make(anchorAt('hero-1') - h * 0.5, 1, 'hero-1'),
-              make(anchorAt('hero-2') - h * 0.5, 2, 'hero-2'),
-              make(anchorAt('studio') - h * 0.5, 3, 'studio'),
-              make(anchorAt('expertise') - h * 0.5, 4, 'expertise'),
-              make(top(work) - h * 0.3, 4, 'expertise'),
-              make(top(select('#approach')) - h * 0.55, 4, 'expertise'),
-              make(stepStops[0], 5, 'process'),
-              make(stepStops[1], 6, 'process'),
-              make(stepStops[2], 7, 'process'),
-              make(anchorAt('contact') - h * 0.5, 8, 'contact'),
-              make(anchorAt('footer') - h * 0.5, 9, 'footer'),
+                make(0, 0, 'hero-0'),
+                make(anchorAt('hero-0') - h * 0.45, 0, 'hero-0'),
+                make(anchorAt('hero-1') - h * 0.5, 1, 'hero-1'),
+                make(anchorAt('hero-2') - h * 0.5, 2, 'hero-2'),
+                make(anchorAt('studio') - h * 0.5, 3, 'studio'),
+                make(anchorAt('expertise') - h * 0.5, 4, 'expertise'),
+                make(top(work) - h * 0.3, 4, 'expertise'),
+                make(top(select('#approach')) - h * 0.55, 4, 'expertise'),
+                make(stepStops[0], 5, 'process'),
+                make(stepStops[1], 6, 'process'),
+                make(stepStops[2], 7, 'process'),
+                make(anchorAt('contact') - h * 0.5, 8, 'contact'),
+                make(anchorAt('footer') - h * 0.5, 9, 'footer'),
               ];
         // Ensure the closing signature is reachable even when the footer is shorter than the viewport.
         docHeight = Math.max(1, document.documentElement.scrollHeight - h);
@@ -244,12 +236,15 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
           stop.at = Math.min(stop.at, docHeight - (stops.length - 1 - index));
           if (index) stop.at = Math.max(stops[index - 1].at + 1, stop.at);
         });
+        stopPositions = stops.map((stop) => stop.at);
         lastSignature = '';
+        lastScroll = Number.NaN;
       };
       const queueMeasure = () => {
         if (!destroyed && !measureFrame)
           measureFrame = requestAnimationFrame(() => {
-            measure();
+            measureFrame = 0;
+            // The refresh listener measures once after pin geometry is updated.
             ScrollTrigger.refresh();
           });
       };
@@ -277,6 +272,12 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
         compactZones: number[],
       ) => {
         if (!system) return;
+        const previous = {
+          chapter: state.chapter,
+          x: state.x,
+          y: state.y,
+          width: state.width,
+        };
         system.clear();
         const zoneChapters: Record<string, number> = {
           'hero-0': 0,
@@ -320,6 +321,8 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
               height: clipHeight,
             });
         });
+        // Rendering several reserved areas must not overwrite the scroll pose.
+        Object.assign(state, previous);
       };
       const tick = (time: number) => {
         if (
@@ -337,6 +340,7 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
           window.innerHeight,
         ].join(':');
         const inputChanged = inputSignature !== lastSignature;
+        const frameInterval = compact ? 1 / 24 : 1 / 36;
         const systemInMotion = state.chapter > 0.5 && state.chapter < 1.5;
         if (!inputChanged) {
           const mobileHeroAlive =
@@ -362,10 +366,15 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
           }
           return;
         }
-        const position = resolveStops(
-          scroll,
-          stops.map((stop) => stop.at),
-        );
+        // Keep the signature pending until processed, including the final scroll event.
+        if (
+          time - lastInputUpdate < frameInterval ||
+          (system && time - lastSystemRender < frameInterval)
+        )
+          return;
+        lastInputUpdate = time;
+        const scrollChanged = scroll !== lastScroll;
+        const position = resolveStops(scroll, stopPositions);
         const index = Math.floor(position);
         const a = stops[index],
           b = stops[Math.min(index + 1, stops.length - 1)];
@@ -381,76 +390,75 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
         state.width = mix(from.width, to.width, t);
         const compactZones = desktop ? [] : visibleCompactZones(scroll);
         const chapter = state.chapter;
-        if (desktop && chapter > 3 && chapter < 5) {
-          const anchor =
-            anchors[
-              zones.findIndex((zone) => zone.dataset.sceneZone === 'expertise')
-            ];
-          const upper = Math.max(
-            0,
-            anchorY(anchor, scroll) - anchor.height / 2,
-          );
-          host.style.clipPath = `inset(${upper}px 0 0 0)`;
-        } else host.style.clipPath = '';
-        const heroProgress = clamp01(scroll / heroTravel);
-        if (pinned)
-          setAct(heroProgress < 0.34 ? 0 : heroProgress < 0.73 ? 1 : 2);
-        track.style.setProperty('--chapter-progress', String(heroProgress));
-        root.classList.toggle('header-scrolled', scroll > 60);
-        const pageProgress = clamp01(scroll / docHeight);
-        progress.style.transform = `scaleX(${pageProgress})`;
-        root.style.setProperty('--page-progress', String(pageProgress));
-        root.style.setProperty(
-          '--cosmic-shift',
-          `${-4 + pageProgress * 8}vh`,
-        );
-        root.style.setProperty(
-          '--cosmic-rotation',
-          `${-17 + pageProgress * 4}deg`,
-        );
-        const step = stepStops.reduce(
-          (value, at, i) => (scroll >= at ? i : value),
-          -1,
-        );
-        if (step !== activeStep) {
-          activeStep = step;
-          steps.forEach((item, i) => (item.dataset.active = String(i <= step)));
-        }
-        const section = sectionStops.reduce(
-          (value, at, i) => (scroll >= at ? i : value),
-          0,
-        );
-        if (section !== activeSection) {
-          activeSection = section;
-          const chapterNames = [
-            'imagine',
-            'studio',
-            'expertise',
-            'work',
-            'approach',
-            'contact',
-            'signature',
-          ];
-          root.dataset.chapter = chapterNames[section];
-          chapterReadout.textContent = chapterNames[section];
-          all('.desktop-nav a').forEach((link) => {
-            const active =
-              link.getAttribute('href') ===
-              [
-                '#top',
-                '#about',
-                '#expertise',
-                '#work',
-                '#approach',
-                '#contact',
-                '#footer',
-              ][section];
-            if (active) link.setAttribute('aria-current', 'location');
-            else link.removeAttribute('aria-current');
+        if (scrollChanged) {
+          if (desktop && chapter > 3 && chapter < 5) {
+            const anchor =
+              anchors[
+                zones.findIndex(
+                  (zone) => zone.dataset.sceneZone === 'expertise',
+                )
+              ];
+            const upper = Math.max(
+              0,
+              anchorY(anchor, scroll) - anchor.height / 2,
+            );
+            host.style.clipPath = `inset(${upper}px 0 0 0)`;
+          } else host.style.clipPath = '';
+          const heroProgress = clamp01(scroll / heroTravel);
+          if (pinned)
+            setAct(heroProgress < 0.34 ? 0 : heroProgress < 0.73 ? 1 : 2);
+          chapterLines.forEach((line) => {
+            line.style.transform = `scaleX(${heroProgress})`;
           });
+          root.classList.toggle('header-scrolled', scroll > 60);
+          const pageProgress = clamp01(scroll / docHeight);
+          progress.style.transform = `scaleX(${pageProgress})`;
+          globalProgress.style.transform = `scaleX(${pageProgress})`;
+          const step = stepStops.reduce(
+            (value, at, i) => (scroll >= at ? i : value),
+            -1,
+          );
+          if (step !== activeStep) {
+            activeStep = step;
+            steps.forEach(
+              (item, i) => (item.dataset.active = String(i <= step)),
+            );
+          }
+          const section = sectionStops.reduce(
+            (value, at, i) => (scroll >= at ? i : value),
+            0,
+          );
+          if (section !== activeSection) {
+            activeSection = section;
+            const chapterNames = [
+              'imagine',
+              'studio',
+              'expertise',
+              'work',
+              'approach',
+              'contact',
+              'signature',
+            ];
+            root.dataset.chapter = chapterNames[section];
+            chapterReadout.textContent = chapterNames[section];
+            navLinks.forEach((link) => {
+              const active =
+                link.getAttribute('href') ===
+                [
+                  '#top',
+                  '#about',
+                  '#expertise',
+                  '#work',
+                  '#approach',
+                  '#contact',
+                  '#footer',
+                ][section];
+              if (active) link.setAttribute('aria-current', 'location');
+              else link.removeAttribute('aria-current');
+            });
+          }
+          lastScroll = scroll;
         }
-        lastChange = time;
-        const moving = chapter > 0.5 && chapter < 1.5;
         const visible = desktop
           ? state.y > -state.width && state.y < window.innerHeight + state.width
           : compactZones.length > 0;
@@ -460,7 +468,6 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
         if (
           system &&
           visible &&
-          (moving || time - lastChange < 0.28) &&
           time - lastSystemRender >= systemFrameInterval
         ) {
           lastSystemRender = time;
@@ -480,7 +487,7 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
           if (window.scrollY < 24 && !window.location.hash) {
             gsap.from(acts[0].querySelectorAll('.heading-line'), {
               yPercent: 18,
-              opacity: 0.55,
+              opacity: 1,
               duration: 0.9,
               stagger: 0.07,
               ease: 'power3.out',
@@ -821,7 +828,7 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
               y: compact ? 24 : 55,
               rotationY: compact ? 0 : index % 2 ? -7 : 5,
               scale: compact ? 0.98 : 0.92,
-              opacity: 0.22,
+              opacity: 1,
               transformOrigin: 'left center',
             },
             {
@@ -998,9 +1005,29 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
           ?.scrollIntoView({ behavior: 'instant', block: 'start' });
       initialArrival = false;
       tick(0);
-      if (reduced || !system) signalReady();
+      // Scroll effects can paint before the separate 3D engine is parsed/initialized.
+      const sceneStart = window.setTimeout(() => {
+        if (reduced || destroyed) return;
+        void import('./living-system')
+          .then(async ({ createLivingSystem: create }) => {
+            if (destroyed) return;
+            system = create(host, state, compact);
+            await system.prepare();
+            if (destroyed) return;
+            lastSignature = '';
+            lastInputUpdate = -Infinity;
+            lastSystemRender = -Infinity;
+          })
+          .catch(() => {
+            if (destroyed) return;
+            host.classList.add('scene-fallback');
+            signalReady();
+          });
+      }, 0);
+      if (reduced) signalReady();
       return () => {
         destroyed = true;
+        window.clearTimeout(sceneStart);
         cancelAnimationFrame(measureFrame);
         observer.disconnect();
         previewObserver.disconnect();
@@ -1018,9 +1045,9 @@ export function createMotionStory(root: HTMLElement, onReady?: () => void) {
         serviceArt.removeEventListener('pointerleave', keyboard);
         system?.destroy();
         host.style.clipPath = '';
-        root.style.removeProperty('--page-progress');
-        root.style.removeProperty('--cosmic-shift');
-        root.style.removeProperty('--cosmic-rotation');
+        globalProgress.style.removeProperty('transform');
+        progress.style.removeProperty('transform');
+        chapterLines.forEach((line) => line.style.removeProperty('transform'));
         root.classList.remove(
           'story-ready',
           'motion-desktop',
