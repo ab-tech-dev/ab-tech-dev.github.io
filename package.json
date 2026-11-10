@@ -10,6 +10,10 @@
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
+    "lint:app": "oxlint app lib tests vite.config.ts next.config.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/motion-state.test.mjs",
+    "check": "npm run lint:app && npm run typecheck && npm test",
     "format": "oxfmt"
   },
   "dependencies": {
